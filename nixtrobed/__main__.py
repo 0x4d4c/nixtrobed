@@ -34,6 +34,7 @@ def initialize_testbed_directory(directory):
     _create_directory_structure(directory)
     _write_default_config_file(directory)
     _write_vagrantfile_template(directory)
+    _generate_ansible_config(directory)
     _generate_default_playbook(directory)
     return 0
 
@@ -151,6 +152,13 @@ def _write_vagrantfile_template(path: Path) -> None:
         vfile.write(_VAGRANTFILE_TEMPLATE)
 
 
+def _generate_ansible_config(path: Path) -> None:
+    ansible_cfg = path / "provisioning" / "ansible.cfg"
+    with ansible_cfg.open("w") as config:
+        config.write("[defaults]\n")
+        config.write("roles_path = roles")
+
+
 def _generate_default_playbook(path: Path) -> None:
     playbook = Path(path) / _PLAYBOOK_DIRECTORY / _DEFAULT_PLAYBOOK_NAME
     with playbook.open("w") as pbook:
@@ -218,6 +226,7 @@ Vagrant.configure("2") do |config|
     {{ distro.name }}.vm.box = "{{ distro.box }}"
 
     {{ distro.name }}.vm.provision "ansible" do |ansible|
+      ansible.config_file = "provisioning/ansible.cfg"
       ansible.playbook = "provisioning/playbooks/{{ distro.playbook }}"
     end
   end
